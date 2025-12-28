@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- 配置Tailwind自定义样式 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#64748B',
+                        success: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        info: '#3ABFF8',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .sidebar-item {
+                @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 cursor-pointer;
+            }
+            .sidebar-item:hover {
+                @apply bg-primary/10;
+            }
+            .sidebar-item.active {
+                @apply bg-primary text-white;
+            }
+            .card {
+                @apply bg-white rounded-xl shadow-md p-6 transition-all duration-300;
+            }
+            .card:hover {
+                @apply shadow-lg;
+            }
+            .btn {
+                @apply px-4 py-2 rounded-lg transition-all duration-200 font-medium flex items-center justify-center gap-2;
+            }
+            .btn-primary {
+                @apply bg-primary text-white;
+            }
+            .btn-primary:hover {
+                @apply bg-primary/90;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-white;
+            }
+            .btn-secondary:hover {
+                @apply bg-secondary/90;
+            }
+            .btn-danger {
+                @apply bg-danger text-white;
+            }
+            .btn-danger:hover {
+                @apply bg-danger/90;
+            }
+            .btn-outline {
+                @apply border border-gray-300 text-gray-700;
+            }
+            .btn-outline:hover {
+                @apply border-primary text-primary;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+            }
+            .text-area {
+                @apply input-field resize-none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <nav id="navbar" class="bg-white shadow-sm fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa fa-cog text-primary text-xl"></i>
+                <span class="text-lg font-bold text-gray-800">博客管理系统</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button class="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fa fa-bell-o text-gray-600"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+                
+                <div id="user-profile" class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded-lg transition-colors">
+                    <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover">
+                    <span id="username-display" class="font-medium text-gray-700">管理员</span>
+                    <i class="fa fa-angle-down text-gray-500"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 主内容区域 -->
+    <div class="flex pt-16 min-h-screen">
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-gray-200 transition-all duration-300 overflow-y-auto">
+            <div class="py-4">
+                <div class="px-4 mb-4">
+                    <p class="text-xs uppercase text-gray-500 font-semibold tracking-wider">主导航</p>
+                </div>
+                
+                <div class="sidebar-item active" data-target="dashboard">
+                    <i class="fa fa-tachometer"></i>
+                    <span>仪表盘</span>
+                </div>
+                
+                <div class="sidebar-item" data-target="blogs">
+                    <i class="fa fa-file-text-o"></i>
+                    <span>博客管理</span>
+                    <span class="ml-auto bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs">12</span>
+                </div>
+                
+                <div class="sidebar-item" data-target="categories">
+                    <i class="fa fa-list-ul"></i>
+                    <span>分类管理</span>
+                </div>
+                
+                <div class="sidebar-item" data-target="users">
+                    <i class="fa fa-users"></i>
+                    <span>用户管理</span>
+                </div>
+                
+                <div class="px-4 my-4">
+                    <p class="text-xs uppercase text-gray-500 font-semibold tracking-wider">系统</p>
+                </div>
+                
+                <div class="sidebar-item" data-target="settings">
+                    <i class="fa fa-sliders"></i>
+                    <span>系统设置</span>
+                </div>
+                
+                <div class="sidebar-item" id="logout-btn">
+                    <i class="fa fa-sign-out"></i>
+                    <span>退出登录</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- 内容区域 -->
+        <main class="flex-1 ml-64 p-6 transition-all duration-300">
+            <!-- 仪表盘页面 -->
+            <section id="dashboard-page" class="page-content">
+                <div class="flex flex-col md:flex-row gap-6 mb-6">
+                    <!-- 统计卡片 1 -->
+                    <div class="card flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">总博客数量</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">12</h3>
+                                <p class="text-success flex items-center gap-1 text-sm mt-2">
+                                    <i class="fa fa-arrow-up"></i>
+                                    <span>12.5% 较上月</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-file-text-o text-primary text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 统计卡片 2 -->
+                    <div class="card flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">总访问量</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">1,256</h3>
+                                <p class="text-success flex items-center gap-1 text-sm mt-2">
+                                    <i class="fa fa-arrow-up"></i>
+                                    <span>8.2% 较上月</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-eye text-success text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 统计卡片 3 -->
+                    <div class="card flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">活跃用户</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">5</h3>
+                                <p class="text-danger flex items-center gap-1 text-sm mt-2">
+                                    <i class="fa fa-arrow-down"></i>
+                                    <span>2.1% 较上月</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-users text-warning text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 统计卡片 4 -->
+                    <div class="card flex-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">分类数量</p>
+                                <h3 class="text-2xl font-bold text-gray-800 mt-1">3</h3>
+                                <p class="text-success flex items-center gap-1 text-sm mt-2">
+                                    <i class="fa fa-arrow-up"></i>
+                                    <span>新增1个分类</span>
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-info/10 rounded-full flex items-center justify-center">
+                                <i class="fa fa-list-ul text-info text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图表区域 -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 访问统计图表 -->
+                    <div class="card lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-lg text-gray-800">访问统计</h3>
+                            <div class="flex items-center gap-2">
+                                <button class="btn btn-outline text-sm">周</button>
+                                <button class="btn btn-primary text-sm">月</button>
+                                <button class="btn btn-outline text-sm">年</button>
+                            </div>
+                        </div>
+                        <div class="h-80">
+                            <canvas id="visitorsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 分类统计饼图 -->
+                    <div class="card">
+                        <h3 class="font-semibold text-lg text-gray-800 mb-4">博客分类统计</h3>
+                        <div class="h-80">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 最近博客 -->
+                <div class="card mt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-lg text-gray-800">最近博客</h3>
+                        <button class="btn btn-outline text-sm" data-target="blogs">查看全部</button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">标题</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">分类</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">作者</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">发布日期</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">访问量</th>
+                                    <th class="text-right py-3 px-4 text-gray-500 font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/237/40/40" alt="博客缩略图" class="w-10 h-10 rounded object-cover">
+                                            <span class="font-medium text-gray-700">Vue.js 3.0 新特性详解</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">技术</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://picsum.photos/id/1005/20/20" alt="用户头像" class="w-5 h-5 rounded-full">
+                                            <span class="text-gray-600">管理员</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-05-15</td>
+                                    <td class="py-3 px-4 text-gray-600">128</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="p-1 text-primary hover:bg-primary/10 rounded transition-colors">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-danger hover:bg-danger/10 rounded transition-colors">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/239/40/40" alt="博客缩略图" class="w-10 h-10 rounded object-cover">
+                                            <span class="font-medium text-gray-700">如何高效学习前端框架</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">技术</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://picsum.photos/id/1005/20/20" alt="用户头像" class="w-5 h-5 rounded-full">
+                                            <span class="text-gray-600">管理员</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-05-10</td>
+                                    <td class="py-3 px-4 text-gray-600">96</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="p-1 text-primary hover:bg-primary/10 rounded transition-colors">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-danger hover:bg-danger/10 rounded transition-colors">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/160/40/40" alt="博客缩略图" class="w-10 h-10 rounded object-cover">
+                                            <span class="font-medium text-gray-700">日本旅行攻略分享</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">旅行</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://picsum.photos/id/1005/20/20" alt="用户头像" class="w-5 h-5 rounded-full">
+                                            <span class="text-gray-600">管理员</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-05-05</td>
+                                    <td class="py-3 px-4 text-gray-600">203</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="p-1 text-primary hover:bg-primary/10 rounded transition-colors">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="p-1 text-danger hover:bg-danger/10 rounded transition-colors">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 博客管理页面 -->
+            <section id="blogs-page" class="page-content hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">博客管理</h2>
+                        <p class="text-gray-500 mt-1">管理所有博客文章</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <input type="text" placeholder="搜索博客..." class="input-field pl-10 pr-4 py-2 w-full md:w-64">
+                            <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        
+                        <button id="add-blog-btn" class="btn btn-primary">
+                            <i class="fa fa-plus"></i>
+                            <span>新增博客</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">
+                                        <div class="flex items-center gap-1">
+                                            <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                                        </div>
+                                    </th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">标题</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">分类</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">作者</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">发布日期</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">访问量</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">状态</th>
+                                    <th class="text-right py-3 px-4 text-gray-500 font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/237/40/40" alt="博客缩略图" class="w-10 h-10 rounded object-cover">
+                                            <span class="font-medium text-gray-700">Vue.js 3.0 新特性详解</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">技术</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://picsum.photos/id/1005/20/20" alt="用户头像" class="w-5 h-5 rounded-full">
+                                            <span class="text-gray-600">管理员</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-05-15</td>
+                                    <td class="py-3 px-4 text-gray-600">128</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">已发布</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/239/40/40" alt="博客缩略图" class="w-10 h-10 rounded object-cover">
+                                            <span class="font-medium text-gray-700">如何高效学习前端框架</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">技术</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://picsum.photos/id/1005/20/20" alt="用户头像" class="w-5 h-5 rounded-full">
+                                            <span class="text-gray-600">管理员</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-05-10</td>
+                                    <td class="py-3 px-4 text-gray-600">96</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">已发布</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <input type="checkbox" class="rounded border-gray-300 text-primary focus:ring-primary">
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/160/40/40" alt="博客缩略图" class="w-10 h-10 rounded object-cover">
+                                            <span class="font-medium text-gray-700">日本旅行攻略分享</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">旅行</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://picsum.photos/id/1005/20/20" alt="用户头像" class="w-5 h-5 rounded-full">
+                                            <span class="text-gray-600">管理员</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-05-05</td>
+                                    <td class="py-3 px-4 text-gray-600">203</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">已发布</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    <div class="flex items-center justify-between mt-6 px-4">
+                        <div class="text-gray-600 text-sm">
+                            显示 1-3 项，共 12 项
+                        </div>
+                        
+                        <div class="flex items-center gap-1">
+                            <button class="btn btn-outline w-9 h-9 p-0"><i class="fa fa-angle-left"></i></button>
+                            <button class="btn btn-primary w-9 h-9 p-0">1</button>
+                            <button class="btn btn-outline w-9 h-9 p-0">2</button>
+                            <button class="btn btn-outline w-9 h-9 p-0">3</button>
+                            <button class="btn btn-outline w-9 h-9 p-0">4</button>
+                            <button class="btn btn-outline w-9 h-9 p-0"><i class="fa fa-angle-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 分类管理页面 -->
+            <section id="categories-page" class="page-content hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">分类管理</h2>
+                        <p class="text-gray-500 mt-1">管理所有博客分类</p>
+                    </div>
+                    
+                    <button id="add-category-btn" class="btn btn-primary">
+                        <i class="fa fa-plus"></i>
+                        <span>新增分类</span>
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">#</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">分类名称</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">博客数量</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">创建时间</th>
+                                    <th class="text-right py-3 px-4 text-gray-500 font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 text-gray-600">1</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                                                <i class="fa fa-code"></i>
+                                            </div>
+                                            <span class="font-medium text-gray-700">技术</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">8</td>
+                                    <td class="py-3 px-4 text-gray-600">2023-01-01</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 text-gray-600">2</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-500">
+                                                <i class="fa fa-plane"></i>
+                                            </div>
+                                            <span class="font-medium text-gray-700">旅行</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">3</td>
+                                    <td class="py-3 px-4 text-gray-600">2023-01-01</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4 text-gray-600">3</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500">
+                                                <i class="fa fa-coffee"></i>
+                                            </div>
+                                            <span class="font-medium text-gray-700">生活</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">1</td>
+                                    <td class="py-3 px-4 text-gray-600">2023-01-01</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 用户管理页面 -->
+            <section id="users-page" class="page-content hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">用户管理</h2>
+                        <p class="text-gray-500 mt-1">管理所有系统用户</p>
+                    </div>
+                    
+                    <button id="add-user-btn" class="btn btn-primary">
+                        <i class="fa fa-plus"></i>
+                        <span>新增用户</span>
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">用户名</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">邮箱</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">角色</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">创建时间</th>
+                                    <th class="text-left py-3 px-4 text-gray-500 font-medium">状态</th>
+                                    <th class="text-right py-3 px-4 text-gray-500 font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-10 h-10 rounded-full object-cover">
+                                            <div>
+                                                <span class="font-medium text-gray-700">管理员</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">admin@example.com</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs">管理员</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-01-01</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">活跃</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://picsum.photos/id/1012/40/40" alt="用户头像" class="w-10 h-10 rounded-full object-cover">
+                                            <div>
+                                                <span class="font-medium text-gray-700">张三</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">zhangsan@example.com</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">普通用户</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-gray-600">2023-02-15</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">活跃</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button class="btn btn-outline btn-sm text-primary">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-sm text-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 系统设置页面 -->
+            <section id="settings-page" class="page-content hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">系统设置</h2>
+                    <p class="text-gray-500 mt-1">管理系统配置</p>
+                </div>
+                
+                <div class="card">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-4">基本设置</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="site-title" class="block text-sm font-medium text-gray-700 mb-1">网站标题</label>
+                            <input type="text" id="site-title" value="我的个人博客" class="input-field">
+                        </div>
+                        
+                        <div>
+                            <label for="site-description" class="block text-sm font-medium text-gray-700 mb-1">网站描述</label>
+                            <input type="text" id="site-description" value="分享技术与生活的个人博客" class="input-field">
+                        </div>
+                        
+                        <div>
+                            <label for="site-author" class="block text-sm font-medium text-gray-700 mb-1">网站作者</label>
+                            <input type="text" id="site-author" value="管理员" class="input-field">
+                        </div>
+                        
+                        <div>
+                            <label for="site-email" class="block text-sm font-medium text-gray-700 mb-1">联系邮箱</label>
+                            <input type="email" id="site-email" value="admin@example.com" class="input-field">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h3 class="font-semibold text-lg text-gray-800 mb-4">安全设置</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="old-password" class="block text-sm font-medium text-gray-700 mb-1">当前密码</label>
+                                <input type="password" id="old-password" class="input-field">
+                            </div>
+                            
+                            <div>
+                                <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">新密码</label>
+                                <input type="password" id="new-password" class="input-field">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">确认新密码</label>
+                                <input type="password" id="confirm-password" class="input-field">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex items-center gap-4">
+                        <button class="btn btn-primary">保存设置</button>
+                        <button class="btn btn-outline">取消</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- 添加博客模态框 -->
+    <div id="blog-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div class="border-b border-gray-200 p-6 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-800">新增博客</h3>
+                <button id="close-blog-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <form id="blog-form">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-2">
+                            <div class="mb-4">
+                                <label for="blog-title" class="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                                <input type="text" id="blog-title" name="title" placeholder="输入博客标题" class="input-field">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="blog-category" class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                                <select id="blog-category" name="category" class="input-field">
+                                    <option value="">请选择分类</option>
+                                    <option value="技术">技术</option>
+                                    <option value="生活">生活</option>
+                                    <option value="旅行">旅行</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="blog-content" class="block text-sm font-medium text-gray-700 mb-1">内容</label>
+                                <textarea id="blog-content" name="content" rows="10" placeholder="输入博客内容" class="text-area"></textarea>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="blog-tags" class="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                                <input type="text" id="blog-tags" name="tags" placeholder="输入标签，用逗号分隔" class="input-field">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">封面图片</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer" id="image-upload-area">
+                                    <div class="py-8">
+                                        <i class="fa fa-cloud-upload text-3xl text-gray-400 mb-2"></i>
+                                        <p class="text-sm text-gray-500">点击或拖拽文件到此处上传</p>
+                                        <p class="text-xs text-gray-400 mt-1">支持JPG、PNG格式，最大5MB</p>
+                                    </div>
+                                </div>
+                                <input type="file" id="blog-image" name="image" class="hidden">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="blog-status" class="block text-sm font-medium text-gray-700 mb-1">状态</label>
+                                <select id="blog-status" name="status" class="input-field">
+                                    <option value="draft">草稿</option>
+                                    <option value="published">已发布</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="border-t border-gray-200 p-6 flex items-center justify-end gap-4">
+                <button id="cancel-blog-btn" class="btn btn-outline">取消</button>
+                <button id="save-blog-btn" class="btn btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏导航
+            const sidebarItems = document.querySelectorAll('.sidebar-item[data-target]');
+            const pageContents = document.querySelectorAll('.page-content');
+            
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // 移除所有活动状态
+                    sidebarItems.forEach(i => i.classList.remove('active'));
+                    pageContents.forEach(p => p.classList.add('hidden'));
+                    
+                    // 添加活动状态
+                    this.classList.add('active');
+                    const target = this.getAttribute('data-target');
+                    document.getElementById(`${target}-page`).classList.remove('hidden');
+                });
+            });
+            
+            // 导航栏滚动效果
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 10) {
+                    navbar.classList.add('shadow');
+                } else {
+                    navbar.classList.remove('shadow');
+                }
+            });
+            
+            // 模态框控制
+            const blogModal = document.getElementById('blog-modal');
+            const addBlogBtn = document.getElementById('add-blog-btn');
+            const closeBlogModal = document.getElementById('close-blog-modal');
+            const cancelBlogBtn = document.getElementById('cancel-blog-btn');
+            
+            function openModal() {
+                blogModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeModal() {
+                blogModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+            
+            addBlogBtn.addEventListener('click', openModal);
+            closeBlogModal.addEventListener('click', closeModal);
+            cancelBlogBtn.addEventListener('click', closeModal);
+            
+            // 点击模态框外部关闭
+            blogModal.addEventListener('click', function(e) {
+                if (e.target === blogModal) {
+                    closeModal();
+                }
+            });
+            
+            // 图片上传处理
+            const imageUploadArea = document.getElementById('image-upload-area');
+            const blogImage = document.getElementById('blog-image');
+            
+            imageUploadArea.addEventListener('click', function() {
+                blogImage.click();
+            });
+            
+            blogImage.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        imageUploadArea.innerHTML = `
+                            <img src="${event.target.result}" alt="预览图" class="w-full h-auto rounded-md">
+                            <button type="button" class="mt-2 text-sm text-danger" id="remove-image">
+                                <i class="fa fa-trash mr-1"></i> 删除
+                            </button>
+                        `;
+                        
+                        // 删除图片
+                        document.getElementById('remove-image').addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            blogImage.value = '';
+                            imageUploadArea.innerHTML = `
+                                <div class="py-8">
+                                    <i class="fa fa-cloud-upload text-3xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500">点击或拖拽文件到此处上传</p>
+                                    <p class="text-xs text-gray-400 mt-1">支持JPG、PNG格式，最大5MB</p>
+                                </div>
+                            `;
+                        });
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 图表初始化
+            const initCharts = () => {
+                // 访问统计图表
+                const visitorsCtx = document.getElementById('visitorsChart').getContext('2d');
+                const visitorsChart = new Chart(visitorsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                        datasets: [{
+                            label: '访问量',
+                            data: [65, 59, 80, 81, 56, 55, 72, 90, 105, 120, 110, 130],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // 分类统计饼图
+                const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+                const categoryChart = new Chart(categoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['技术', '生活', '旅行'],
+                        datasets: [{
+                            data: [8, 1, 3],
+                            backgroundColor: ['#3B82F6', '#F59E0B', '#10B981']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%'
+                    }
+                });
+            };
+            
+            // 初始化图表
+            initCharts();
+            
+            // 退出登录
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                if (confirm('确定要退出登录吗？')) {
+                    // 这里可以添加清除token的逻辑
+                    alert('已退出登录');
+                }
+            });
+            
+            // 模拟API调用函数
+            const api = {
+                baseURL: '/api',
+                
+                async fetchBlogs() {
+                    try {
+                        // 实际项目中这里会发送真实的API请求
+                        // const response = await fetch(`${this.baseURL}/blogs`, {
+                        //     headers: {
+                        //         'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        //     }
+                        // });
+                        // return await response.json();
+                        
+                        // 模拟数据
+                        return { data: [] };
+                    } catch (error) {
+                        console.error('获取博客失败:', error);
+                        throw error;
+                    }
+                },
+                
+                async createBlog(blogData) {
+                    try {
+                        // 实际项目中这里会发送真实的API请求
+                        // const formData = new FormData();
+                        // for (const key in blogData) {
+                        //     formData.append(key, blogData[key]);
+                        // }
+                        
+                        // const response = await fetch(`${this.baseURL}/blogs`, {
+                        //     method: 'POST',
+                        //     headers: {
+                        //         'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        //     },
+                        //     body: formData
+                        // });
+                        
+                        // return await response.json();
+                        
+                        // 模拟成功响应
+                        alert('博客创建成功！');
+                        closeModal();
+                        return { success: true };
+                    } catch (error) {
+                        console.error('创建博客失败:', error);
+                        alert('创建博客失败，请重试');
+                        throw error;
+                    }
+                }
+            };
+            
+            // 保存博客
+            document.getElementById('save-blog-btn').addEventListener('click', function() {
+                const form = document.getElementById('blog-form');
+                const formData = new FormData(form);
+                const blogData = Object.fromEntries(formData.entries());
+                
+                // 简单验证
+                if (!blogData.title || !blogData.content || !blogData.category) {
+                    alert('请填写必填字段');
+                    return;
+                }
+                
+                // 调用API创建博客
+                api.createBlog(blogData);
+            });
+        });
+    </script>
+</body>
+</html>

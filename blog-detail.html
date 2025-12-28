@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客详情 - dilyar的个人博客</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        dark: '#1e293b',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .blog-content p {
+                margin-bottom: 1rem;
+                line-height: 1.7;
+            }
+            .blog-content h1, .blog-content h2, .blog-content h3 {
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+                font-weight: 600;
+            }
+            .blog-content h1 { font-size: 1.8rem; }
+            .blog-content h2 { font-size: 1.5rem; }
+            .blog-content h3 { font-size: 1.25rem; }
+            .blog-content img {
+                max-width: 100%;
+                height: auto;
+                margin: 1.5rem 0;
+                border-radius: 0.5rem;
+            }
+            .blog-content blockquote {
+                border-left: 4px solid #3b82f6;
+                padding-left: 1rem;
+                margin: 1.5rem 0;
+                color: #64748b;
+                font-style: italic;
+            }
+            .blog-content ul, .blog-content ol {
+                margin: 1rem 0;
+                padding-left: 2rem;
+            }
+            .blog-content li {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-dark">
+    <!-- 导航栏 -->
+    <header class="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-sm z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-3">
+            <nav class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold text-primary flex items-center gap-2">
+                        <i class="fa fa-book"></i>
+                        <span>dilyar的个人博客</span>
+                    </a>
+                </div>
+                
+                <!-- 桌面端导航 -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="text-gray-600 hover:text-primary transition-colors">首页</a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors">分类</a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors">标签</a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors">关于我</a>
+                    <a href="http://localhost:5000/admin" target="_blank" class="bg-secondary hover:bg-secondary/90 text-white p-2 rounded-full transition-all duration-300" title="后端管理">
+                        <i class="fa fa-cog"></i>
+                    </a>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <button id="menuToggle" class="md:hidden text-gray-600">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </nav>
+            
+            <!-- 移动端菜单 -->
+            <div id="mobileMenu" class="md:hidden hidden mt-3 pb-2">
+                <div class="flex flex-col gap-3">
+                    <a href="index.html" class="text-gray-600 hover:text-primary transition-colors py-2">首页</a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors py-2">分类</a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors py-2">标签</a>
+                    <a href="#" class="text-gray-600 hover:text-primary transition-colors py-2">关于我</a>
+                    <a href="http://localhost:5000/admin" target="_blank" class="bg-secondary hover:bg-secondary/90 text-white p-2 rounded-full transition-all duration-300 text-center" title="后端管理">
+                        <i class="fa fa-cog"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="container mx-auto px-4 pt-28 pb-16">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- 博客详情内容 -->
+            <div class="lg:w-2/3">
+                <div class="bg-white rounded-xl shadow-sm p-6 md:p-8 mb-8">
+                    <!-- 博客标题 -->
+                    <h1 id="blogTitle" class="text-2xl md:text-3xl font-bold mb-4 text-dark"></h1>
+                    
+                    <!-- 博客元信息 -->
+                    <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6 pb-6 border-b">
+                        <span class="flex items-center gap-1">
+                            <i class="fa fa-calendar-o"></i>
+                            <span id="blogDate"></span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fa fa-user-o"></i>
+                            <span id="blogAuthor"></span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fa fa-folder-o"></i>
+                            <span id="blogCategory"></span>
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i class="fa fa-heart-o"></i>
+                            <span id="blogLikes"></span> 赞
+                        </span>
+                    </div>
+                    
+                    <!-- 博客特色图片 -->
+                    <div class="mb-8">
+                        <img id="blogImage" src="" alt="博客封面" class="w-full h-auto rounded-lg object-cover">
+                    </div>
+                    
+                    <!-- 博客内容 -->
+                    <div id="blogContent" class="blog-content text-gray-700 leading-relaxed"></div>
+                    
+                    <!-- 点赞按钮 -->
+                    <div class="mt-8 pt-6 border-t flex justify-center">
+                        <button id="likeBtn" class="bg-primary/10 hover:bg-primary/20 text-primary px-6 py-3 rounded-full transition-colors flex items-center gap-2">
+                            <i class="fa fa-heart-o"></i>
+                            <span>点赞</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 返回首页按钮 -->
+                <div class="text-center">
+                    <a href="index.html" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-full shadow-sm transition-colors">
+                        <i class="fa fa-arrow-left"></i>
+                        <span>返回首页</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 侧边栏 -->
+            <div class="lg:w-1/3">
+                <!-- 作者信息 -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa fa-user-circle text-primary"></i>
+                        <span>博主信息</span>
+                    </h3>
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl mb-3">
+                            <i class="fa fa-user"></i>
+                        </div>
+                        <h4 class="font-medium mb-2">dilyar</h4>
+                        <p class="text-gray-500 text-sm">热爱分享的技术博主</p>
+                    </div>
+                </div>
+                
+                <!-- 分类统计 -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa fa-folder text-primary"></i>
+                        <span>博客分类</span>
+                    </h3>
+                    <div class="flex flex-wrap gap-2" id="categoryStats">
+                        <!-- 分类统计将通过JS动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 热门文章 -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa fa-fire text-primary"></i>
+                        <span>热门文章</span>
+                    </h3>
+                    <div class="space-y-4" id="popularBlogs">
+                        <!-- 热门文章将通过JS动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 消息提示 -->
+    <div id="toast" class="fixed top-20 right-4 bg-blue-50 text-blue-800 px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 flex items-center gap-2">
+        <i id="toastIcon" class="fa fa-info-circle text-blue-400"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // 模拟博客数据
+        // 使用localStorage实现简单的数据持久化
+        let blogData;
+        // 尝试从localStorage加载数据
+        try {
+            const savedData = localStorage.getItem('blogData');
+            if (savedData) {
+                blogData = JSON.parse(savedData);
+            } else {
+                // 如果没有保存的数据，使用默认数据
+                blogData = [
+            {
+                id: 1,
+                title: "React Hooks 实战指南",
+                content: "React Hooks 是 React 16.8 引入的新特性，它可以让你在不编写 class 的情况下使用 state 以及其他的 React 特性。本文将深入探讨 Hooks 的使用方法和最佳实践...",
+                category: "技术",
+                image: "https://picsum.photos/id/0/600/400",
+                date: "2024-01-15",
+                author: "dilyar",
+                likes: 128
+            },
+            {
+                id: 2,
+                title: "日常生活中的编程思维",
+                content: "编程不仅仅是一种职业技能，更是一种解决问题的思维方式。在日常生活中，我们也可以运用编程思维来提高效率，优化决策过程...",
+                category: "生活",
+                image: "https://picsum.photos/id/1/600/400",
+                date: "2024-01-10",
+                author: "dilyar",
+                likes: 96
+            },
+            {
+                id: 3,
+                title: "如何高效学习新技术栈",
+                content: "在技术快速迭代的今天，持续学习新技术变得尤为重要。本文分享一些高效学习新技术栈的方法和技巧，帮助你快速掌握新技能...",
+                category: "学习",
+                image: "https://picsum.photos/id/2/600/400",
+                date: "2024-01-05",
+                author: "dilyar",
+                likes: 156
+            },
+            {
+                id: 4,
+                title: "JavaScript 异步编程详解",
+                content: "异步编程是 JavaScript 的核心特性之一。从回调函数到 Promise，再到 async/await，JavaScript 的异步编程方式不断演进，本文将详细介绍这些异步编程模式...",
+                category: "技术",
+                image: "https://picsum.photos/id/4/600/400",
+                date: "2024-01-01",
+                author: "dilyar",
+                likes: 189
+            },
+            {
+                id: 5,
+                title: "旅行中的数字游民生活",
+                content: "数字游民 lifestyle 正成为越来越多年轻人的选择。带着一台笔记本电脑，就能在世界各地工作和生活。本文分享我的数字游民体验和心得...",
+                category: "旅行",
+                image: "https://picsum.photos/id/5/600/400",
+                date: "2023-12-28",
+                author: "dilyar",
+                likes: 234
+            },
+            {
+                id: 6,
+                title: "前端性能优化技巧",
+                content: "性能优化是前端开发中的重要话题。本文将介绍一些实用的前端性能优化技巧，包括资源加载优化、渲染优化、代码分割等方面...",
+                category: "技术",
+                image: "https://picsum.photos/id/6/600/400",
+                date: "2023-12-25",
+                author: "dilyar",
+                likes: 167
+            },
+            {
+                id: 7,
+                title: "马拉松训练计划分享",
+                content: "作为一名马拉松爱好者，我想分享一下我的训练计划和心得。规律的训练、科学的饮食和良好的休息是完成马拉松的关键...",
+                category: "运动",
+                image: "https://picsum.photos/id/9/600/400",
+                date: "2023-12-20",
+                author: "dilyar",
+                likes: 142
+            }
+        ];
+        
+                // 将默认数据保存到localStorage
+                try {
+                    localStorage.setItem('blogData', JSON.stringify(blogData));
+                } catch(e) {
+                    console.log('保存数据到localStorage失败:', e);
+                }
+            }
+        } catch(e) {
+            console.log('从localStorage读取数据失败:', e);
+            // 读取失败时使用默认数据
+            blogData = [
+                { id: 1, title: "React Hooks 实战指南", content: "React Hooks 是 React 16.8 引入的新特性...", category: "技术", image: "https://picsum.photos/id/0/600/400", date: "2024-01-15", author: "dilyar", likes: 128 },
+                { id: 2, title: "日常生活中的编程思维", content: "编程不仅仅是一种职业技能...", category: "生活", image: "https://picsum.photos/id/1/600/400", date: "2024-01-10", author: "dilyar", likes: 96 },
+                { id: 3, title: "如何高效学习新技术栈", content: "在技术快速迭代的今天...", category: "学习", image: "https://picsum.photos/id/2/600/400", date: "2024-01-05", author: "dilyar", likes: 156 },
+                { id: 4, title: "JavaScript 异步编程详解", content: "异步编程是 JavaScript 的核心特性之一...", category: "技术", image: "https://picsum.photos/id/4/600/400", date: "2024-01-01", author: "dilyar", likes: 189 },
+                { id: 5, title: "旅行中的数字游民生活", content: "数字游民 lifestyle 正成为越来越多年轻人的选择...", category: "旅行", image: "https://picsum.photos/id/5/600/400", date: "2023-12-28", author: "dilyar", likes: 234 },
+                { id: 6, title: "前端性能优化技巧", content: "性能优化是前端开发中的重要话题...", category: "技术", image: "https://picsum.photos/id/6/600/400", date: "2023-12-25", author: "dilyar", likes: 167 }
+            ];
+        }
+        
+        // 简单的数据持久化函数
+        function saveData() {
+            try {
+                localStorage.setItem('blogData', JSON.stringify(blogData));
+            } catch(e) {
+                console.log('保存数据失败:', e);
+            }
+        }
+        
+        // 添加图片URL处理函数，确保图片路径正确并且提供错误回退机制
+        function getImageUrl(imagePath) {
+            // 如果路径为空或未定义，提供默认随机图片
+            if (!imagePath) {
+                const randomId = Math.floor(Math.random() * 100);
+                return `https://picsum.photos/id/${randomId}/600/400`;
+            }
+            
+            // 保留原始图片URL，包括DataURL格式和其他可能的格式
+            // 只有在确定图片URL无效时才提供默认图片
+            return imagePath;
+        }
+        
+        // 图片加载失败处理函数
+        function handleImageError(imgElement) {
+            // 当图片加载失败时，使用随机默认图片替换
+            const randomId = Math.floor(Math.random() * 100);
+            imgElement.src = `https://picsum.photos/id/${randomId}/600/400`;
+            imgElement.onerror = null; // 防止无限循环
+        }
+        // 获取URL中的博客ID参数
+        function getBlogIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return parseInt(urlParams.get('id'));
+        }
+        
+        // 根据ID查找博客
+        function findBlogById(id) {
+            return blogData.find(blog => blog.id === id);
+        }
+        
+        // 格式化博客内容（将换行符转换为HTML段落）
+        function formatBlogContent(content) {
+            // 将内容按换行符分割
+            const paragraphs = content.split('\n\n');
+            
+            // 处理每个段落
+            return paragraphs.map(para => {
+                // 检查是否是标题
+                if (para.startsWith('## ')) {
+                    return `<h2>${para.substring(3)}</h2>`;
+                } else if (para.startsWith('# ')) {
+                    return `<h1>${para.substring(2)}</h1>`;
+                } else if (para.startsWith('```')) {
+                    // 处理代码块
+                    const code = para.substring(para.indexOf('\n') + 1, para.lastIndexOf('\n'));
+                    const language = para.substring(3, para.indexOf('\n')).trim();
+                    return `<pre><code class="language-${language}">${code}</code></pre>`;
+                } else {
+                    return `<p>${para}</p>`;
+                }
+            }).join('');
+        }
+        
+        // 渲染博客详情
+        function renderBlogDetail() {
+            const blogId = getBlogIdFromUrl();
+            const blog = findBlogById(blogId);
+            
+            if (!blog) {
+                document.getElementById('blogTitle').textContent = '博客不存在';
+                document.getElementById('blogContent').textContent = '抱歉，您访问的博客不存在或已被删除。';
+                return;
+            }
+            
+            // 填充博客信息
+            document.getElementById('blogTitle').textContent = blog.title;
+            document.getElementById('blogDate').textContent = blog.date;
+            document.getElementById('blogAuthor').textContent = blog.author;
+            document.getElementById('blogCategory').textContent = blog.category;
+            document.getElementById('blogLikes').textContent = blog.likes;
+            
+            // 使用getImageUrl函数处理图片URL，并添加onerror处理函数
+            const blogImage = document.getElementById('blogImage');
+            blogImage.src = getImageUrl(blog.image);
+            blogImage.alt = blog.title;
+            blogImage.onerror = function() { handleImageError(this); };
+            
+            document.getElementById('blogContent').innerHTML = formatBlogContent(blog.content);
+            
+            // 设置页面标题
+            document.title = `${blog.title} - dilyar的个人博客`;
+            
+            // 绑定点赞事件
+            document.getElementById('likeBtn').addEventListener('click', function() {
+                blog.likes += 1;
+                document.getElementById('blogLikes').textContent = blog.likes;
+                // 保存更新后的数据
+                saveData();
+                showToast('点赞成功！', 'success');
+            });
+        }
+        
+        // 渲染分类统计
+        function renderCategoryStats() {
+            const categoryCounts = {};
+            
+            // 统计每个分类的博客数量
+            blogData.forEach(blog => {
+                if (categoryCounts[blog.category]) {
+                    categoryCounts[blog.category]++;
+                } else {
+                    categoryCounts[blog.category] = 1;
+                }
+            });
+            
+            // 生成分类链接
+            const categoryStats = document.getElementById('categoryStats');
+            for (const [category, count] of Object.entries(categoryCounts)) {
+                const link = document.createElement('a');
+                link.href = `index.html?category=${category}`;
+                link.className = 'bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs transition-colors';
+                link.textContent = `${category} (${count})`;
+                categoryStats.appendChild(link);
+            }
+        }
+        
+        // 渲染热门文章
+        function renderPopularBlogs() {
+            // 按点赞数排序，取前3篇
+            const popularBlogs = [...blogData]
+                .sort((a, b) => b.likes - a.likes)
+                .slice(0, 3);
+            
+            const popularBlogsContainer = document.getElementById('popularBlogs');
+            popularBlogsContainer.innerHTML = ''; // 清空容器
+            
+            popularBlogs.forEach(blog => {
+                const blogItem = document.createElement('div');
+                blogItem.className = 'flex gap-3';
+                
+                // 创建图片元素并添加错误处理
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'flex-shrink-0 w-16 h-16';
+                
+                const img = document.createElement('img');
+                img.src = getImageUrl(blog.image);
+                img.alt = blog.title;
+                img.className = 'w-full h-full object-cover rounded';
+                img.onerror = function() { handleImageError(this); };
+                
+                imgContainer.appendChild(img);
+                
+                const contentContainer = document.createElement('div');
+                
+                const titleLink = document.createElement('a');
+                titleLink.href = `blog-detail.html?id=${blog.id}`;
+                titleLink.className = 'text-sm font-medium hover:text-primary transition-colors line-clamp-2';
+                titleLink.textContent = blog.title;
+                
+                const dateSpan = document.createElement('p');
+                dateSpan.className = 'text-xs text-gray-500 mt-1';
+                dateSpan.textContent = blog.date;
+                
+                contentContainer.appendChild(titleLink);
+                contentContainer.appendChild(dateSpan);
+                
+                blogItem.appendChild(imgContainer);
+                blogItem.appendChild(contentContainer);
+                
+                popularBlogsContainer.appendChild(blogItem);
+            });
+        }
+        
+        // 显示消息提示
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // 设置图标和样式
+            if (type === 'success') {
+                toastIcon.className = 'fa fa-check-circle text-green-400';
+                toast.className = 'fixed top-20 right-4 bg-green-50 text-green-800 px-6 py-3 rounded-lg shadow-lg transform translate-x-0 transition-transform duration-300 flex items-center gap-2';
+            } else if (type === 'error') {
+                toastIcon.className = 'fa fa-exclamation-circle text-red-400';
+                toast.className = 'fixed top-20 right-4 bg-red-50 text-red-800 px-6 py-3 rounded-lg shadow-lg transform translate-x-0 transition-transform duration-300 flex items-center gap-2';
+            } else {
+                toastIcon.className = 'fa fa-info-circle text-blue-400';
+                toast.className = 'fixed top-20 right-4 bg-blue-50 text-blue-800 px-6 py-3 rounded-lg shadow-lg transform translate-x-0 transition-transform duration-300 flex items-center gap-2';
+            }
+            
+            // 显示toast
+            toast.classList.remove('translate-x-full');
+            toast.classList.add('translate-x-0');
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0');
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-2');
+                navbar.classList.remove('py-3');
+            } else {
+                navbar.classList.remove('py-2');
+                navbar.classList.add('py-3');
+            }
+        });
+        
+        // 移动端菜单切换
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // 点击移动端菜单项后关闭菜单
+        document.querySelectorAll('#mobileMenu a').forEach(link => {
+            link.addEventListener('click', () => {
+                const mobileMenu = document.getElementById('mobileMenu');
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // 页面加载完成后渲染博客详情
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBlogDetail();
+            renderCategoryStats();
+            renderPopularBlogs();
+        });
+    </script>
+    <!-- 页脚 -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center gap-2 font-bold text-2xl mb-6 md:mb-0">
+                    <i class="fa fa-pencil-square-o"></i>
+                    <span>dilyar</span>
+                </div>
+                <div class="flex gap-8 mb-6 md:mb-0">
+                    <a href="index.html" class="hover:text-primary transition-colors">首页</a>
+                    <a href="" class="hover:text-primary transition-colors">博客</a>
+                    <a href="" class="hover:text-primary transition-colors">分类</a>
+                    <a href="" class="hover:text-primary transition-colors">关于</a>
+                </div>
+                <div class="flex gap-4">
+                    <a href="" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fa fa-github"></i>
+                    </a>
+                    <a href="" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fa fa-linkedin"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>欢迎来到dilyar的阅读空间，希望你能在这里找到有价值的内容和思考！</p>
+                <p class="mt-2">&copy; 2024 dilyar. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
