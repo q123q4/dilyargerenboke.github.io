@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片上传测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        img {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>图片上传功能测试</h1>
+    
+    <div class="test-container">
+        <h2>1. 测试 FileReader 功能</h2>
+        <p>这个测试验证我们是否能正确读取本地图片并将其转换为 DataURL：</p>
+        <input type="file" id="testImageInput" accept="image/*">
+        <button class="button" onclick="testFileReader()">测试读取图片</button>
+        <div id="resultContainer">
+            <h3>图片预览：</h3>
+            <img id="previewImage" src="" alt="预览图片" style="display:none;">
+            <h3>DataURL 结果：</h3>
+            <pre id="dataUrlResult"></pre>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>2. 测试错误处理功能</h2>
+        <p>这个测试验证图片加载失败时是否能正确显示默认图片：</p>
+        <img id="errorImage" src="invalid-url.jpg" alt="错误图片测试" onerror="handleImageError(this)" width="300" height="200">
+    </div>
+    
+    <script>
+        // 模拟 FileReader 测试
+        function testFileReader() {
+            const input = document.getElementById('testImageInput');
+            const previewImage = document.getElementById('previewImage');
+            const dataUrlResult = document.getElementById('dataUrlResult');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                    dataUrlResult.textContent = e.target.result.substring(0, 200) + '... [截断]';
+                    console.log('FileReader 测试成功:', e.target.result);
+                };
+                
+                reader.onerror = function() {
+                    dataUrlResult.textContent = '读取文件失败';
+                    console.error('FileReader 测试失败');
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                dataUrlResult.textContent = '请先选择一张图片';
+            }
+        }
+        
+        // 图片加载失败处理函数（与主应用中使用的相同）
+        function handleImageError(img) {
+            // 当图片加载失败时，使用默认图片代替
+            img.src = 'https://picsum.photos/id/65/300/200';
+            // 添加加载失败标记，防止无限循环重试
+            img.onerror = null;
+            console.log('图片错误处理测试成功');
+        }
+        
+        console.log('测试页面加载完成，准备测试图片上传功能');
+    </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客功能测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .status-card {
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+        .primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .test-step {
+            margin-bottom: 2rem;
+        }
+        pre {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="test-container">
+        <h1 class="text-3xl font-bold mb-6">博客功能测试说明</h1>
+        
+        <div class="status-card success">
+            <h2 class="text-xl font-semibold mb-2">已修复的问题</h2>
+            <ol class="list-decimal pl-5 space-y-1">
+                <li>登录按钮现在可以正确打开登录模态框</li>
+                <li>未登录用户可以查看所有博客，但不能编辑或发布</li>
+            </ol>
+        </div>
+        
+        <div class="test-step">
+            <h2 class="text-xl font-semibold mb-3">测试步骤</h2>
+            
+            <div class="mb-4">
+                <h3 class="font-medium text-lg">1. 测试登录功能</h3>
+                <p>点击页面右上角的"登录"按钮，应该会弹出登录模态框</p>
+                <pre><code>// 修复的代码逻辑
+loginBtn.onclick = () => {
+    loginModal.classList.remove('hidden');
+    loginModal.classList.add('flex');
+};
+</code></pre>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="font-medium text-lg">2. 测试未登录状态下查看博客</h3>
+                <p>在未登录状态下，应该能看到所有博客内容，但博客卡片右下角不会显示编辑按钮</p>
+                <pre><code>// 条件渲染编辑按钮的逻辑
+${isLoggedIn ? `<button class="edit-blog-btn text-gray-400 hover:text-green-500 transition-colors" data-id="${blog.id}">
+    <i class="fa fa-pencil"></i>
+</button>` : ''}
+</code></pre>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="font-medium text-lg">3. 测试演示账号登录</h3>
+                <p>在登录模态框中，可以点击"使用演示账号登录"按钮，会自动填充账号信息</p>
+                <p class="text-sm text-gray-500">演示账号: demo@example.com</p>
+                <p class="text-sm text-gray-500">密码: password123</p>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="font-medium text-lg">4. 测试登录后功能</h3>
+                <p>登录成功后，会看到：</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>登录按钮变为显示用户名和退出选项</li>
+                    <li>导航栏中出现"管理"按钮</li>
+                    <li>每个博客卡片右下角显示编辑按钮</li>
+                    <li>页面中显示"撰写新博客"区域</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap">
+            <a href="index.html" class="action-btn primary">返回博客首页</a>
+        </div>
+    </div>
+</body>
+</html>

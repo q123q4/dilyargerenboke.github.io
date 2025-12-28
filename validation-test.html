@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理逻辑验证测试</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .code-block {
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        .image-container {
+            position: relative;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        .image-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">图片处理逻辑验证测试</h1>
+            <p class="text-gray-600">测试博客系统中的图片URL处理和错误处理逻辑</p>
+        </header>
+
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">1. 验证脚本输出</h2>
+            <div id="validationOutput" class="code-block text-sm text-gray-700 h-64 overflow-y-auto">
+                <p class="text-gray-500 italic">请打开浏览器控制台查看验证结果...</p>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">2. 实际图片加载测试</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 有效图片URL测试 -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2">有效图片URL</h3>
+                    <div class="image-container">
+                        <div class="image-label">有效URL</div>
+                        <img 
+                            id="validImage" 
+                            src="https://picsum.photos/id/237/600/400" 
+                            alt="有效图片" 
+                            class="w-full h-auto"
+                            onerror="handleImageError(this)"
+                        >
+                    </div>
+                </div>
+
+                <!-- 无效图片URL测试 -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2">无效图片URL</h3>
+                    <div class="image-container">
+                        <div class="image-label">无效URL (应显示默认图片)</div>
+                        <img 
+                            id="invalidImage" 
+                            src="https://this.is.an.invalid.url/123.jpg" 
+                            alt="无效图片" 
+                            class="w-full h-auto"
+                            onerror="handleImageError(this)"
+                        >
+                    </div>
+                </div>
+
+                <!-- 空图片URL测试 -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2">空图片URL</h3>
+                    <div class="image-container">
+                        <div class="image-label">空URL (应显示默认图片)</div>
+                        <img 
+                            id="emptyImage" 
+                            src="" 
+                            alt="空图片" 
+                            class="w-full h-auto"
+                            onerror="handleImageError(this)"
+                        >
+                    </div>
+                </div>
+
+                <!-- Data URL测试 -->
+                <div>
+                    <h3 class="font-medium text-gray-700 mb-2">Data URL</h3>
+                    <div class="image-container">
+                        <div class="image-label">Data URL</div>
+                        <img 
+                            id="dataUrlImage" 
+                            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" 
+                            alt="Data URL图片" 
+                            class="w-full h-auto"
+                            onerror="handleImageError(this)"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">3. 测试控制</h2>
+            <div class="flex flex-wrap gap-4">
+                <button id="runAllTests" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors flex items-center gap-2">
+                    <i class="fa fa-play"></i>
+                    <span>运行所有测试</span>
+                </button>
+                <button id="testImageUrl" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors flex items-center gap-2">
+                    <i class="fa fa-picture-o"></i>
+                    <span>测试getImageUrl</span>
+                </button>
+                <button id="testImageError" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition-colors flex items-center gap-2">
+                    <i class="fa fa-exclamation-triangle"></i>
+                    <span>测试错误处理</span>
+                </button>
+                <button id="resetImages" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors flex items-center gap-2">
+                    <i class="fa fa-refresh"></i>
+                    <span>重置测试图片</span>
+                </button>
+            </div>
+        </div>
+
+        <footer class="mt-12 text-center text-gray-600 text-sm">
+            <p>© 2024 图片处理逻辑验证测试</p>
+        </footer>
+    </div>
+
+    <!-- 图片处理函数 -->
+    <script>
+        // 添加图片URL处理函数，确保图片路径正确并且提供错误回退机制
+        function getImageUrl(imagePath) {
+            // 如果路径为空或未定义，提供默认随机图片
+            if (!imagePath) {
+                const randomId = Math.floor(Math.random() * 100);
+                return `https://picsum.photos/id/${randomId}/600/400`;
+            }
+            
+            // 保留原始图片URL，包括DataURL格式和其他可能的格式
+            // 只有在确定图片URL无效时才提供默认图片
+            return imagePath;
+        }
+        
+        // 图片加载失败处理函数
+        function handleImageError(imgElement) {
+            // 当图片加载失败时，使用随机默认图片替换
+            const randomId = Math.floor(Math.random() * 100);
+            imgElement.src = `https://picsum.photos/id/${randomId}/600/400`;
+            imgElement.onerror = null; // 防止无限循环
+            console.log(`图片加载失败，已替换为默认图片: ${imgElement.src}`);
+        }
+    </script>
+
+    <!-- 引入验证脚本 -->
+    <script src="validation.js"></script>
+
+    <!-- 测试控制脚本 -->
+    <script>
+        // 辅助函数：在页面上显示验证输出
+        function logToOutput(message) {
+            const outputDiv = document.getElementById('validationOutput');
+            const logElement = document.createElement('div');
+            logElement.textContent = message;
+            outputDiv.appendChild(logElement);
+            outputDiv.scrollTop = outputDiv.scrollHeight; // 自动滚动到底部
+        }
+
+        // 重写console.log以同时输出到页面
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            logToOutput(args.join(' '));
+        };
+
+        // 为测试按钮添加事件监听器
+        document.getElementById('runAllTests').addEventListener('click', function() {
+            document.getElementById('validationOutput').innerHTML = '';
+            testAll();
+        });
+
+        document.getElementById('testImageUrl').addEventListener('click', function() {
+            document.getElementById('validationOutput').innerHTML = '';
+            testImageUrl();
+        });
+
+        document.getElementById('testImageError').addEventListener('click', function() {
+            document.getElementById('validationOutput').innerHTML = '';
+            testImageError();
+        });
+
+        document.getElementById('resetImages').addEventListener('click', function() {
+            // 重置测试图片
+            document.getElementById('validImage').src = 'https://picsum.photos/id/237/600/400';
+            document.getElementById('invalidImage').src = 'https://this.is.an.invalid.url/123.jpg';
+            document.getElementById('emptyImage').src = '';
+            document.getElementById('dataUrlImage').src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+            
+            // 重新添加onerror事件处理
+            document.getElementById('validImage').onerror = function() { handleImageError(this); };
+            document.getElementById('invalidImage').onerror = function() { handleImageError(this); };
+            document.getElementById('emptyImage').onerror = function() { handleImageError(this); };
+            document.getElementById('dataUrlImage').onerror = function() { handleImageError(this); };
+            
+            logToOutput('测试图片已重置');
+        });
+
+        // 页面加载时自动运行测试
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('validationOutput').innerHTML = '';
+                console.log('开始自动执行验证测试...');
+                testAll();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

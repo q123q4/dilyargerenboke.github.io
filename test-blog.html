@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客系统测试</title>
+    <script>
+        // 简单的博客数据测试
+        window.onload = function() {
+            // 尝试从localStorage读取博客数据
+            let blogData = [];
+            try {
+                const savedData = localStorage.getItem('blogData');
+                if (savedData) {
+                    blogData = JSON.parse(savedData);
+                    console.log('从localStorage读取到', blogData.length, '条博客数据');
+                } else {
+                    // 默认博客数据
+                    blogData = [
+                        { id: 1, title: "React Hooks 实战指南", content: "React Hooks 是 React 16.8 引入的新特性...", category: "技术", image: "https://picsum.photos/id/0/600/400", date: "2024-01-15", author: "dilyar", likes: 128 },
+                        { id: 2, title: "日常生活中的编程思维", content: "编程不仅仅是一种职业技能...", category: "生活", image: "https://picsum.photos/id/1/600/400", date: "2024-01-10", author: "dilyar", likes: 96 },
+                        { id: 3, title: "如何高效学习新技术栈", content: "在技术快速迭代的今天...", category: "学习", image: "https://picsum.photos/id/2/600/400", date: "2024-01-05", author: "dilyar", likes: 156 }
+                    ];
+                    // 保存到localStorage
+                    localStorage.setItem('blogData', JSON.stringify(blogData));
+                    console.log('已保存默认博客数据到localStorage');
+                }
+            } catch(e) {
+                console.error('localStorage操作失败:', e);
+            }
+            
+            // 显示博客列表
+            const blogList = document.getElementById('blog-list');
+            blogData.forEach(blog => {
+                const div = document.createElement('div');
+                div.className = 'blog-item';
+                div.innerHTML = `
+                    <h3>${blog.title}</h3>
+                    <p>分类: ${blog.category} | 点赞: ${blog.likes}</p>
+                    <button onclick="editBlog(${blog.id})">编辑</button>
+                `;
+                blogList.appendChild(div);
+            });
+        };
+        
+        // 编辑博客的简单函数
+        function editBlog(id) {
+            try {
+                const blogData = JSON.parse(localStorage.getItem('blogData') || '[]');
+                const blog = blogData.find(b => b.id === id);
+                
+                if (blog) {
+                    const newTitle = prompt('请输入新标题:', blog.title);
+                    if (newTitle) {
+                        blog.title = newTitle;
+                        // 保存更新后的数据
+                        localStorage.setItem('blogData', JSON.stringify(blogData));
+                        alert('博客已更新! 刷新页面查看变化');
+                    }
+                }
+            } catch(e) {
+                console.error('编辑博客失败:', e);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>博客测试系统</h1>
+    <p>此页面用于测试博客数据持久化功能</p>
+    <div id="blog-list"></div>
+    <p><a href="index.html">返回主页面</a></p>
+</body>
+</html>
