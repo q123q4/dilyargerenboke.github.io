@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片上传测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        .file-input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .file-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .upload-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .upload-btn:hover {
+            background-color: #2980b9;
+        }
+        .upload-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .server-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .server-info h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        .server-info p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+        .results-section {
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        .results-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        #results {
+            min-height: 100px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+        }
+        .image-preview {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .image-preview h3 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        #previewImage {
+            max-width: 100%;
+            max-height: 300px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        .success-message {
+            color: #27ae60;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(52, 152, 219, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片上传测试工具</h1>
+        
+        <div class="server-info">
+            <h3>📡 服务器信息</h3>
+            <p>上传接口: <strong>http://localhost:3001/api/upload-image</strong></p>
+            <p>健康检查: <strong>http://localhost:3001/health</strong></p>
+            <p>支持格式: <strong>JPG, JPEG, PNG, GIF, WebP</strong></p>
+            <p>文件大小: <strong>最大5MB</strong></p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="form-group">
+                <label for="imageUpload">选择图片文件:</label>
+                <input type="file" id="imageUpload" class="file-input" accept="image/*">
+            </div>
+            <button id="uploadBtn" class="upload-btn" disabled>
+                <span id="btnText">选择文件后上传</span>
+                <span id="loading" class="loading-spinner" style="display:none;"></span>
+            </button>
+            <div id="statusMessage"></div>
+        </div>
+        
+        <div class="results-section">
+            <h2>📊 上传结果</h2>
+            <div id="results">等待上传...</div>
+        </div>
+        
+        <div id="imagePreview" class="image-preview">
+            <h3>🖼️ 图片预览</h3>
+            <img id="previewImage" src="" alt="上传成功的图片预览">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('imageUpload');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const resultsDiv = document.getElementById('results');
+            const statusMessage = document.getElementById('statusMessage');
+            const btnText = document.getElementById('btnText');
+            const loading = document.getElementById('loading');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const uploadUrl = 'http://localhost:3001/api/upload-image';
+            
+            // 文件选择事件
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    uploadBtn.disabled = false;
+                    btnText.textContent = '上传图片';
+                    statusMessage.textContent = '';
+                    
+                    // 验证文件大小（5MB限制）
+                    const maxSize = 5 * 1024 * 1024;
+                    if (this.files[0].size > maxSize) {
+                        uploadBtn.disabled = true;
+                        statusMessage.textContent = '文件大小超过限制（最大5MB）';
+                        statusMessage.className = 'error-message';
+                    }
+                    
+                    // 验证文件类型
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!allowedTypes.includes(this.files[0].type)) {
+                        uploadBtn.disabled = true;
+                        statusMessage.textContent = '不支持的文件类型，请选择图片文件';
+                        statusMessage.className = 'error-message';
+                    }
+                } else {
+                    uploadBtn.disabled = true;
+                    btnText.textContent = '选择文件后上传';
+                }
+            });
+            
+            // 上传按钮点击事件
+            uploadBtn.addEventListener('click', async function() {
+                const file = fileInput.files[0];
+                if (!file) {
+                    showError('请先选择图片文件');
+                    return;
+                }
+                
+                // 准备上传
+                uploadBtn.disabled = true;
+                btnText.textContent = '上传中';
+                loading.style.display = 'inline-block';
+                statusMessage.textContent = '';
+                resultsDiv.textContent = '正在上传，请稍候...';
+                imagePreview.style.display = 'none';
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    
+                    const response = await fetch(uploadUrl, {
+                        method: 'POST',
+                        body: formData,
+                        // 注意：不要设置Content-Type，让浏览器自动处理multipart/form-data
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // 显示上传结果
+                    resultsDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    if (response.ok && data.success) {
+                        showSuccess('✅ 图片上传成功！');
+                        
+                        // 显示图片预览
+                        if (data.data && data.data.url) {
+                            previewImage.src = data.data.url;
+                            imagePreview.style.display = 'block';
+                        }
+                    } else {
+                        showError(`❌ 上传失败: ${data.message || '未知错误'}`);
+                    }
+                    
+                } catch (error) {
+                    showError(`❌ 上传过程发生错误: ${error.message}`);
+                    resultsDiv.textContent = `错误详情: ${error.stack || String(error)}`;
+                } finally {
+                    uploadBtn.disabled = false;
+                    btnText.textContent = '重新上传';
+                    loading.style.display = 'none';
+                }
+            });
+            
+            // 显示成功消息
+            function showSuccess(message) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'success-message';
+            }
+            
+            // 显示错误消息
+            function showError(message) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'error-message';
+            }
+            
+            // 页面加载时检查服务器状态
+            async function checkServerStatus() {
+                try {
+                    const response = await fetch('http://localhost:3001/health');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.status === 'ok') {
+                            showSuccess('🚀 服务器已准备就绪！');
+                        }
+                    } else {
+                        showError('⚠️ 服务器可能未启动，请先启动测试服务器');
+                    }
+                } catch (error) {
+                    showError('⚠️ 无法连接到服务器，请确认服务器正在运行');
+                }
+            }
+            
+            // 检查服务器状态
+            checkServerStatus();
+        });
+    </script>
+</body>
+</html>
