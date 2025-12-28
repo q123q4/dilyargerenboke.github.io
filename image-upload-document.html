@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片上传文档 - 通过Base64编码上传图片</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #34495e;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .preview {
+            margin-top: 20px;
+            border: 1px dashed #ddd;
+            padding: 15px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        .preview img {
+            max-width: 100%;
+            max-height: 400px;
+            display: none;
+            margin: 0 auto;
+        }
+        .instructions {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 20px;
+        }
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>图片上传文档</h1>
+    
+    <div class="container">
+        <div class="section">
+            <div class="instructions">
+                <h3>📝 使用说明</h3>
+                <p>这个文档允许您通过Base64编码的方式上传图片。请按照以下步骤操作：</p>
+                <ol>
+                    <li>在您的电脑上选择要上传的图片</li>
+                    <li>使用在线工具将图片转换为Base64编码（推荐使用：<a href="https://www.base64-image.de/" target="_blank">Base64 Image Encoder</a>）</li>
+                    <li>复制完整的Base64编码（包含<code>data:image/xxx;base64,</code>前缀）</li>
+                    <li>粘贴到下方的文本区域中</li>
+                    <li>填写图片名称和描述（可选）</li>
+                    <li>点击「处理图片」按钮</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>1. 图片上传区域</h2>
+            
+            <div class="form-group">
+                <label for="imageName">图片名称（可选）：</label>
+                <input type="text" id="imageName" placeholder="例如：我的照片.jpg">
+            </div>
+            
+            <div class="form-group">
+                <label for="imageBase64">图片Base64编码：</label>
+                <textarea id="imageBase64" placeholder="请粘贴完整的Base64编码..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="imageDescription">图片描述（可选）：</label>
+                <input type="text" id="imageDescription" placeholder="简单描述这张图片">
+            </div>
+            
+            <button class="button" onclick="processImage()">处理图片</button>
+            
+            <div class="success-message" id="successMessage">
+                图片处理成功！您可以在下方预览图片，然后将其保存或使用。
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>2. 图片预览</h2>
+            <div class="preview" id="imagePreview">
+                <img id="previewImage" alt="图片预览">
+                <span id="previewPlaceholder">图片预览将显示在这里</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. 图片信息</h2>
+            <div id="imageInfo">
+                <p><strong>图片名称：</strong><span id="infoName">-</span></p>
+                <p><strong>图片类型：</strong><span id="infoType">-</span></p>
+                <p><strong>编码长度：</strong><span id="infoLength">-</span> 字符</p>
+                <p><strong>估计文件大小：</strong><span id="infoSize">-</span></p>
+                <p><strong>处理时间：</strong><span id="infoTime">-</span></p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>4. 使用说明</h2>
+            <p>处理完成的图片可以通过以下方式使用：</p>
+            <ol>
+                <li>直接在HTML中使用：将Base64编码复制到<code>&lt;img src="..."&gt;</code>标签中</li>
+                <li>保存到本地：右键点击预览图片，选择「另存为」</li>
+                <li>用于博客文章：处理后的图片可以直接在博客系统中使用</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function processImage() {
+            const startTime = new Date().getTime();
+            
+            // 获取输入值
+            const imageName = document.getElementById('imageName').value || 'untitled-image';
+            const base64Data = document.getElementById('imageBase64').value.trim();
+            const description = document.getElementById('imageDescription').value || '无描述';
+            
+            // 验证输入
+            if (!base64Data) {
+                alert('请输入图片的Base64编码！');
+                return;
+            }
+            
+            // 检查是否包含data:image前缀
+            if (!base64Data.startsWith('data:image/')) {
+                alert('请输入完整的Base64编码，包含data:image/xxx;base64,前缀！');
+                return;
+            }
+            
+            // 显示预览
+            const previewImg = document.getElementById('previewImage');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+            
+            previewImg.src = base64Data;
+            previewImg.style.display = 'block';
+            previewPlaceholder.style.display = 'none';
+            
+            // 解析图片信息
+            const imgType = extractImageType(base64Data);
+            const base64Length = base64Data.length;
+            const estimatedSize = calculateFileSize(base64Data);
+            const endTime = new Date().getTime();
+            const processingTime = (endTime - startTime) / 1000;
+            
+            // 更新图片信息
+            document.getElementById('infoName').textContent = imageName;
+            document.getElementById('infoType').textContent = imgType;
+            document.getElementById('infoLength').textContent = base64Length.toLocaleString();
+            document.getElementById('infoSize').textContent = estimatedSize;
+            document.getElementById('infoTime').textContent = processingTime.toFixed(2) + ' 秒';
+            
+            // 显示成功消息
+            document.getElementById('successMessage').style.display = 'block';
+            
+            console.log('图片处理完成:', {
+                name: imageName,
+                type: imgType,
+                size: estimatedSize,
+                description: description
+            });
+        }
+        
+        function extractImageType(base64Data) {
+            const match = base64Data.match(/^data:image\/(\w+);base64,/);
+            return match ? match[1].toUpperCase() + ' 图片' : '未知类型';
+        }
+        
+        function calculateFileSize(base64Data) {
+            // 移除data:image/xxx;base64,前缀
+            const base64 = base64Data.split(',')[1];
+            // Base64编码的文件大小计算：字符数 × 3/4（减去填充）
+            const fileSizeInBytes = base64.length * 3 / 4;
+            
+            if (fileSizeInBytes < 1024) {
+                return (fileSizeInBytes).toFixed(2) + ' B';
+            } else if (fileSizeInBytes < 1024 * 1024) {
+                return (fileSizeInBytes / 1024).toFixed(2) + ' KB';
+            } else {
+                return (fileSizeInBytes / (1024 * 1024)).toFixed(2) + ' MB';
+            }
+        }
+    </script>
+</body>
+</html>

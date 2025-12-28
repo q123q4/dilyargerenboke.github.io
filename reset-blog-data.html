@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客数据重置工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .warning {
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+        }
+        .reset-data {
+            background-color: #f44336;
+        }
+        .reset-data:hover {
+            background-color: #d32f2f;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>博客数据重置工具</h1>
+    <div class="container">
+        <p>这个工具可以帮助你重置博客系统中的默认数据。</p>
+        <p>将使用指定的主题数据（2个体育、2个生活、1个技术和1个学习）替换当前存储的数据。</p>
+        <p><strong>重要说明：</strong>此操作会清空现有的博客数据并替换为新的默认数据。</p>
+        
+        <div class="buttons">
+            <button id="previewBtn">预览新数据</button>
+            <button id="resetBtn" class="reset-data">重置数据</button>
+        </div>
+        
+        <div id="message" class="message warning">请点击上方按钮开始操作</div>
+        
+        <div id="dataPreview" style="display: none; margin-top: 20px; text-align: left;">
+            <h3>新数据预览：</h3>
+            <pre id="previewContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        // 定义新的博客数据
+        const newBlogData = [
+            {
+                id: 1,
+                title: "足球战术分析：现代4-3-3阵型详解",
+                content: "现代足球中，4-3-3阵型因其进攻性和灵活性而备受青睐。本文将深入分析这一阵型的特点、优势以及世界顶级俱乐部的应用案例...",
+                category: "体育",
+                image: "https://picsum.photos/id/1068/600/400",
+                date: "2024-01-20",
+                author: "体育分析师",
+                likes: 215
+            },
+            {
+                id: 2,
+                title: "马拉松训练计划：从零开始到完赛",
+                content: "完成一场马拉松是许多跑步爱好者的梦想。本训练计划将帮助初学者逐步提升耐力，科学训练，安全完赛...",
+                category: "体育",
+                image: "https://picsum.photos/id/1027/600/400",
+                date: "2024-01-18",
+                author: "跑步教练",
+                likes: 189
+            },
+            {
+                id: 3,
+                title: "极简生活方式：如何减少物质依赖",
+                content: "极简主义不仅仅是整理房间，更是一种生活态度。本文分享如何通过减少物质依赖，获得更多心灵自由和生活空间...",
+                category: "生活",
+                image: "https://picsum.photos/id/1059/600/400",
+                date: "2024-01-15",
+                author: "生活达人",
+                likes: 234
+            },
+            {
+                id: 4,
+                title: "家庭园艺入门：阳台种菜指南",
+                content: "即使在城市的小空间里，也能享受园艺的乐趣。本文将教你如何在阳台上种植简单的蔬菜，享受自给自足的成就感...",
+                category: "生活",
+                image: "https://picsum.photos/id/106/600/400",
+                date: "2024-01-12",
+                author: "园艺爱好者",
+                likes: 156
+            },
+            {
+                id: 5,
+                title: "React Hooks 实战指南",
+                content: "React Hooks 是 React 16.8 引入的新特性，它可以让你在不编写 class 的情况下使用 state 以及其他的 React 特性。本文将深入探讨 Hooks 的使用方法和最佳实践...",
+                category: "技术",
+                image: "https://picsum.photos/id/1/600/400",
+                date: "2024-01-10",
+                author: "前端开发者",
+                likes: 189
+            },
+            {
+                id: 6,
+                title: "如何高效学习新技术栈",
+                content: "在技术快速迭代的今天，持续学习新技术变得尤为重要。本文分享一些高效学习新技术栈的方法和技巧，帮助你快速掌握新技能...",
+                category: "学习",
+                image: "https://picsum.photos/id/180/600/400",
+                date: "2024-01-08",
+                author: "学习达人",
+                likes: 201
+            }
+        ];
+
+        const messageEl = document.getElementById('message');
+        const dataPreviewEl = document.getElementById('dataPreview');
+        const previewContentEl = document.getElementById('previewContent');
+
+        // 预览数据按钮事件
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            // 格式化JSON以便于阅读
+            const formattedData = JSON.stringify(newBlogData.map(item => ({
+                id: item.id,
+                title: item.title,
+                category: item.category,
+                image: item.image,
+                date: item.date,
+                author: item.author,
+                likes: item.likes
+            })), null, 2);
+            
+            previewContentEl.textContent = formattedData;
+            dataPreviewEl.style.display = 'block';
+            messageEl.textContent = '数据预览已显示。检查确认无误后，可以点击重置按钮。';
+            messageEl.className = 'message warning';
+        });
+
+        // 重置数据按钮事件
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            try {
+                // 保存新数据到localStorage
+                localStorage.setItem('blogData', JSON.stringify(newBlogData));
+                
+                messageEl.textContent = '数据已成功重置！现在请刷新博客页面查看新的内容。';
+                messageEl.className = 'message success';
+                
+                // 可选：自动打开博客主页
+                setTimeout(() => {
+                    if (confirm('数据已重置成功，是否现在打开博客首页？')) {
+                        window.location.href = 'index.html';
+                    }
+                }, 1000);
+                
+            } catch(e) {
+                messageEl.textContent = '数据重置失败: ' + e.message;
+                messageEl.className = 'message warning';
+                console.error('重置数据出错:', e);
+            }
+        });
+
+        // 页面加载时检查当前存储的数据
+        window.addEventListener('load', function() {
+            try {
+                const currentData = localStorage.getItem('blogData');
+                if (currentData) {
+                    const parsedData = JSON.parse(currentData);
+                    messageEl.textContent = `检测到现有数据：共 ${parsedData.length} 篇博客文章。点击重置按钮可替换为新数据。`;
+                } else {
+                    messageEl.textContent = '未检测到现有数据。点击重置按钮将创建新的默认数据。';
+                }
+            } catch(e) {
+                messageEl.textContent = '无法读取现有数据。';
+                console.error('读取现有数据出错:', e);
+            }
+        });
+    </script>
+</body>
+</html>
